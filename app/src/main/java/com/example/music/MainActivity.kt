@@ -3,13 +3,18 @@ package com.example.music
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
+import com.example.music.Model.Song
+import com.example.music.ViewModel.SongsViewModel
+import com.example.music.`interface`.OnSongClickListener
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), OnSongClickListener {
     private lateinit var bottomNavigationView: BottomNavigationView
     private lateinit var homeFragment: HomeFragment
     private lateinit var settingFragment: SettingFragment
     private lateinit var searchFragment: SearchFragment
+    private lateinit var songsViewModel: SongsViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,8 +24,9 @@ class MainActivity : AppCompatActivity() {
         homeFragment = HomeFragment()
         settingFragment = SettingFragment()
         searchFragment = SearchFragment()
+        songsViewModel = ViewModelProvider(this).get(SongsViewModel::class.java)
 
-        // Gọi phương thức startAuthorization() khi bạn muốn bắt đầu quá trình xác thực
+        songsViewModel.setSongClickListener(this)
 
         bottomNavigationView.setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
@@ -39,11 +45,20 @@ class MainActivity : AppCompatActivity() {
                 else -> false
             }
         }
-        // Hiển thị com.example.music.HomeFragment ban đầu
+
         replaceFragment(homeFragment)
     }
 
     private fun replaceFragment(fragment: Fragment) {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.content_frame, fragment)
+            .commit()
+    }
+
+    override fun onSongClicked(song: Song) {
+        songsViewModel.setSelectedSong(song)
+
+        val fragment = DetailFragment()
         supportFragmentManager.beginTransaction()
             .replace(R.id.content_frame, fragment)
             .commit()

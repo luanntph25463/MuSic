@@ -11,12 +11,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.music.Model.Song
 
-class SongsAdapter(private var songs: List<Song>) : RecyclerView.Adapter<SongsAdapter.ViewHolder>() {
-
-    fun setSongs(songs: List<Song>) {
-        this.songs = songs
-        notifyDataSetChanged()
-    }
+// SongsAdapter.kt
+// SongsAdapter.kt
+class SongsAdapter(private var songs: List<Song>, private val itemClickListener: ItemClickListener) : RecyclerView.Adapter<SongsAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_song, parent, false)
@@ -25,26 +22,35 @@ class SongsAdapter(private var songs: List<Song>) : RecyclerView.Adapter<SongsAd
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val song = songs[position]
-        holder.bind(song)
+        holder.bind(song, itemClickListener)
     }
 
     override fun getItemCount(): Int {
         return songs.size
     }
 
-    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        fun bind(song: Song) {
-            val imageView = itemView.findViewById<ImageView>(R.id.imageView)
-            val nameTextView = itemView.findViewById<TextView>(R.id.nameTextView)
-            val key = itemView.findViewById<TextView>(R.id.durationTextView)
-            val descriptionTextView = itemView.findViewById<TextView>(R.id.descriptionTextView)
+    fun setSongs(songs: List<Song>) {
+        this.songs = songs
+        notifyDataSetChanged()
+    }
 
+    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val imageView: ImageView = itemView.findViewById(R.id.imageView)
+        private val nameTextView: TextView = itemView.findViewById(R.id.nameTextView)
+
+        fun bind(song: Song, itemClickListener: ItemClickListener) {
             Glide.with(itemView)
                 .load(song.image)
                 .into(imageView)
             nameTextView.text = song.title
-            key.text = song.key
-//            descriptionTextView.text = song.description
+
+            itemView.setOnClickListener {
+                itemClickListener.onItemClick(song)
+            }
         }
+    }
+
+    interface ItemClickListener {
+        fun onItemClick(song: Song)
     }
 }

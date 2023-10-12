@@ -1,8 +1,6 @@
 package com.example.music
 
-import android.os.AsyncTask
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,17 +11,11 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.music.Model.Song
-import com.example.music.R
-import com.example.music.SongsAdapter
-import com.example.music.SongsAdapter_2
 import com.example.music.ViewModel.SongsViewModel
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import org.json.JSONArray
-import org.json.JSONException
-import org.json.JSONObject
+import com.example.music.`interface`.OnSongClickListener
 
-class HomeFragment : Fragment() {
+class HomeFragment : Fragment(), SongsAdapter.ItemClickListener, SongsAdapter_2.ItemClickListener {
+
     private lateinit var recyclerView1: RecyclerView
     private lateinit var recyclerView2: RecyclerView
     private lateinit var recyclerView3: RecyclerView
@@ -34,24 +26,23 @@ class HomeFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val rootView = inflater.inflate(R.layout.fragment_home, container, false)
-
         recyclerView1 = rootView.findViewById(R.id.recyclerView)
         recyclerView1.layoutManager = GridLayoutManager(context, 2)
-        adapter1 = SongsAdapter(emptyList())
+        adapter1 = SongsAdapter(emptyList(), this)
         recyclerView1.adapter = adapter1
 
         recyclerView2 = rootView.findViewById(R.id.recyclerView2)
         recyclerView2.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-        adapter2 = SongsAdapter_2(emptyList())
+        adapter2 = SongsAdapter_2(emptyList(), this)
         recyclerView2.adapter = adapter2
 
         recyclerView3 = rootView.findViewById(R.id.recyclerView3)
         recyclerView3.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-        adapter3 = SongsAdapter_2(emptyList())
+        adapter3 = SongsAdapter_2(emptyList(), this)
         recyclerView3.adapter = adapter3
 
         // Initialize the ViewModel
-        songsViewModel = ViewModelProvider(this).get(SongsViewModel::class.java)
+        songsViewModel = ViewModelProvider(requireActivity()).get(SongsViewModel::class.java)
 
         // Observe the songs LiveData
         songsViewModel.getSongsLiveData().observe(viewLifecycleOwner, Observer { songs ->
@@ -65,5 +56,10 @@ class HomeFragment : Fragment() {
         songsViewModel.fetchSongs()
 
         return rootView
+    }
+
+    override fun onItemClick(song: Song) {
+        songsViewModel.setSelectedSong(song)
+        (requireActivity() as? OnSongClickListener)?.onSongClicked(song)
     }
 }

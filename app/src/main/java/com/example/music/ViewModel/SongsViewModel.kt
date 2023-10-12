@@ -1,10 +1,18 @@
 package com.example.music.ViewModel
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
+import com.example.music.Adapter.SongsDataHolder
+import com.example.music.Adapter.SongsDataHolder.isDataAdded
 import com.example.music.Model.Song
+import com.example.music.R
+import com.example.music.`interface`.OnSongClickListener
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -15,15 +23,17 @@ import org.json.JSONObject
 
 class SongsViewModel : ViewModel() {
     private val songsLiveData = MutableLiveData<List<Song>>()
+    private var songClickListener: OnSongClickListener? = null
+    private val selectedSongLiveData = MutableLiveData<Song>()
 
-    fun getSongsLiveData(): LiveData<List<Song>> {
-        return songsLiveData
+
+    fun setSongClickListener(listener: OnSongClickListener) {
+        songClickListener = listener
     }
 
     fun fetchSongs() {
         GlobalScope.launch(Dispatchers.IO) {
             try {
-                // Perform network request to fetch songs data
                 val client = OkHttpClient()
 
                 val request = Request.Builder()
@@ -36,9 +46,15 @@ class SongsViewModel : ViewModel() {
                 val response = client.newCall(request).execute()
                 if (response.isSuccessful) {
                     val responseBody = response.body?.string()
-                    // Parse the response and extract the list of songs
                     val songs = parseSongs(responseBody)
-                    songsLiveData.postValue(songs)
+                        Log.d("isDataAdded", "$isDataAdded")
+
+                        songsLiveData.postValue(songs)
+                        Log.d("âsasa", "Fetching songs")
+                        // Save fetchCount value to SharedPreferences
+
+
+                    Log.d("all","$songs")
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -57,15 +73,72 @@ class SongsViewModel : ViewModel() {
                 val trackObject = jsonArray.getJSONObject(i)
                 val title = trackObject.getString("title")
                 val imageUrl = trackObject.getJSONObject("share").getString("image")
+                val url = trackObject.getJSONObject("share").getString("href")
                 val key = trackObject.getString("key")
                 Log.d("TAG", "$key")
-                val song = Song(key,title,imageUrl)
-                songs.add(song)
-            }
+
+
+                    val song = Song(
+                        Song.getNextId(),
+                        key,
+                        title,
+                        imageUrl,
+                        "android.resource://com.example.music/${R.raw.catdoinoisau}"
+                    )
+                    songs.add(song)
+                }
+
+
         } catch (e: JSONException) {
             e.printStackTrace()
         }
 
         return songs
     }
+
+    fun getPreviousSong(currentSong: Song, songs: List<Song>?): Song? {
+        val songs = getSongsLiveData().value
+        Log.d("getPreviousSong", "$songs")
+        if (songs != null) {
+            val currentId = currentSong.id
+            Log.d("currentId", "$currentId")
+            val currentPosition = songs.indexOfFirst { it.id == currentId }
+            Log.d("currentPosition", "$currentPosition")
+            if (currentPosition > 0) {
+                return songs[currentPosition - 1]
+            }else{
+                return null
+            }
+        }
+        return null
+    }
+    fun getNextsSong(currentSong: Song, songs: List<Song>?): Song? {
+        val songs = getSongsLiveData().value
+        Log.d("getPreviousSong", "$songs")
+        if (songs != null) {
+            val currentId = currentSong.id
+            Log.d("currentId", "$currentId")
+            val currentPosition = songs.indexOfFirst { it.id == currentId }
+            Log.d("currentPosition", "$currentPosition")
+            if (currentPosition < songs.size - 1) {
+                return songs[currentPosition + 1]
+            }else{
+                return null
+            }
+        }
+        return null
+    }
+
+    fun setSelectedSong(song: Song) {
+        selectedSongLiveData.value = song
+    }
+    fun getSongsLiveData(): LiveData<List<Song>> {
+        return songsLiveData
+    }
+
+    fun getSelectedSong(): LiveData<Song> {
+        return selectedSongLiveData
+    }
+
+
 }
