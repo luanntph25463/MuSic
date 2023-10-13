@@ -1,14 +1,57 @@
-<?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".Fragment.SettingFragment">
+    android:layout_height="match_parent">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
-</FrameLayout>
+        <!-- Ô tìm kiếm -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/searchEditText"
+                android:layout_width="293dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Nhập từ khóa" />
+
+            <TextView
+                android:id="@+id/searchButton"
+                android:layout_width="wrap_content"
+                android:padding="20dp"
+                android:textColor="@color/white"
+                android:background="@drawable/button_border_3"
+                android:layout_height="wrap_content"
+                android:text="Tìm kiếm" />
+
+        </LinearLayout>
+        <TextView
+            android:layout_width="match_parent"
+            android:text="Tìm Kiếm Nổi bật"
+            android:layout_marginTop="50dp"
+            android:textSize="24dp"
+            android:layout_height="match_parent"/>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerView2"
+                android:layout_marginTop="70dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+
+        <!-- RecyclerView đầu tiên -->
+
+
+
+
+    </LinearLayout>
+</ScrollView>
