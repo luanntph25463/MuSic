@@ -1,7 +1,6 @@
 package com.example.music
 
-import com.example.music.R
-import android.util.Log
+
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,7 +10,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.music.Model.Song
 
-// SongsAdapter.kt
 // SongsAdapter.kt
 class SongsAdapter(private var songs: List<Song>, private val itemClickListener: ItemClickListener) : RecyclerView.Adapter<SongsAdapter.ViewHolder>() {
 

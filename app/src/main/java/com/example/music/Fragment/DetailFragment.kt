@@ -1,7 +1,7 @@
-package com.example.music
+package com.example.music.Fragment
 
+import android.content.ContentValues.TAG
 import android.content.Intent
-import android.media.MediaPlayer
 import androidx.fragment.app.Fragment
 import android.os.Bundle
 import android.os.Handler
@@ -16,12 +16,14 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
+import com.example.music.R
 import com.example.music.ViewModel.SongsViewModel
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 
+@Suppress("DEPRECATION", "NAME_SHADOWING")
 class DetailFragment : Fragment() {
     private lateinit var imageView: ImageView
     private lateinit var titleTextView: TextView
@@ -30,7 +32,6 @@ class DetailFragment : Fragment() {
     private lateinit var btnNext: ImageButton
     private lateinit var exoPlayer: SimpleExoPlayer
     private lateinit var songsViewModel: SongsViewModel
-    private lateinit var mediaPlayer: MediaPlayer
     private lateinit var seekBar: SeekBar
     private lateinit var handler: Handler
     private lateinit var runnable: Runnable
@@ -49,8 +50,17 @@ class DetailFragment : Fragment() {
         seekBar = view.findViewById(R.id.seekBar)
         replace = view.findViewById(R.id.replace)
         btnForward = view.findViewById(R.id.btnForward)
+        previous = view.findViewById(R.id.btnRewind)
+        btnNext = view.findViewById(R.id.flush)
 
-        songsViewModel = ViewModelProvider(requireActivity()).get(SongsViewModel::class.java)
+        songsViewModel = ViewModelProvider(requireActivity())[SongsViewModel::class.java]
+        return view
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        //
         songsViewModel.run {
             getSelectedSong().observe(viewLifecycleOwner) { song ->
                 // Update the UI with the selected song
@@ -58,46 +68,38 @@ class DetailFragment : Fragment() {
                 Glide.with(requireContext()).load(song.image).into(imageView)
             }
         }
-        return view
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        mediaPlayer = MediaPlayer()
-
         // Initialize ExoPlayer
         val currentSong = songsViewModel.getSelectedSong().value
         exoPlayer = SimpleExoPlayer.Builder(requireContext()).build()
 
-// Tạo một MediaItem từ URL hoặc đường dẫn của bài hát
+        // set  MediaItem từ URL  của bài hát
         val mediaItem = currentSong?.let { MediaItem.fromUri(it.href) }
-        Log.d("mediaItem","$mediaItem")
-// Đặt MediaItem cho ExoPlayer
+        Log.d(TAG,"$mediaItem")
+        // check media not empty  get MediaItem cho ExoPlayer
         if (mediaItem != null) {
             exoPlayer.setMediaItem(mediaItem)
-            Log.d("ay", "s")
         }
-// Chuẩn bị và phát nhạc
+
+        // prepare và play
         exoPlayer.prepare()
         exoPlayer.play()
-        Log.d("Đã play", "s")
 
         seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (fromUser) {
-                    // Tính toán vị trí mới dựa trên tỉ lệ phần trăm
+                    // get vị trí mới in tỉ lệ
                     val newPosition = (exoPlayer.duration * progress) / seekBar!!.max
                     exoPlayer.seekTo(newPosition)
                 }
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                // Dừng việc cập nhật vị trí phát khi người dùng bắt đầu kéo thả
+                // Stop updating the playback position when the user starts dragging and dropping
                 exoPlayer.playWhenReady = false
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                // Tắt việc cập nhật vị trí phát khi người dùng kết thúc kéo thả
+                // Disable updating playback position when user finishes dragging and dropping
                 exoPlayer.playWhenReady = true
             }
         })
@@ -113,19 +115,16 @@ class DetailFragment : Fragment() {
             }
         })
 
-
-        previous = view.findViewById(R.id.btnRewind)
-        btnNext = view.findViewById(R.id.flush)
         // // previous song
         previous.setOnClickListener {
-            val songs = songsViewModel.getSongsLiveData().value
-            Log.d("songs", "$songs")
-            if (songs != null) {
+                // get value song current
                 val currentSong = songsViewModel.getSelectedSong().value
                 Log.d("currentSong", "$currentSong")
 
-                val previousSong = currentSong?.let { it1 -> songsViewModel.getPreviousSong(it1, songs) }
-
+                // check song current
+                val previousSong = currentSong?.let { it1 -> songsViewModel.getPreviousSong(it1) }
+                // if not null Toast
+                // if return song set title and url
                 if (previousSong != null) {
                     titleTextView.text = previousSong.title
 
@@ -133,7 +132,7 @@ class DetailFragment : Fragment() {
                     Glide.with(this)
                         .load(previousSong.image)
                         .into(imageView)
-
+                        // play song
                     songsViewModel.setSelectedSong(previousSong)
                     val mediaItem = MediaItem.fromUri(previousSong.href)
                     exoPlayer.setMediaItem(mediaItem)
@@ -142,28 +141,25 @@ class DetailFragment : Fragment() {
                 }else{
                     Toast.makeText(context,"Hết Bài",Toast.LENGTH_SHORT).show()
                 }
-            }
         }
         // next Songs
         btnNext.setOnClickListener {
-            val songs = songsViewModel.getSongsLiveData().value
-            Log.d("songs", "$songs")
-            if (songs != null) {
+                // get selcted Song Current
                 val currentSong = songsViewModel.getSelectedSong().value
                 Log.d("currentSong", "$currentSong")
 
-                val previousSong = currentSong?.let { it1 -> songsViewModel.getNextsSong(it1, songs) }
+                val nextSong = currentSong?.let { it1 -> songsViewModel.getNextSong(it1) }
 
-                if (previousSong != null) {
-                    titleTextView.text = previousSong.title
+                if (nextSong != null) {
+                    titleTextView.text = nextSong.title
 
                     // Use Glide to load and display the image from the previous song (e.g., previousSong.image)
                     Glide.with(this)
-                        .load(previousSong.image)
+                        .load(nextSong.image)
                         .into(imageView)
 
-                    songsViewModel.setSelectedSong(previousSong)
-                    val mediaItem = MediaItem.fromUri(previousSong.href)
+                    songsViewModel.setSelectedSong(nextSong)
+                    val mediaItem = MediaItem.fromUri(nextSong.href)
                     exoPlayer.setMediaItem(mediaItem)
                     exoPlayer.prepare()
                     exoPlayer.play()
@@ -171,7 +167,6 @@ class DetailFragment : Fragment() {
                     Toast.makeText(context,"Hết Bài",Toast.LENGTH_SHORT).show()
                 }
             }
-        }
 
         btnPause.setOnClickListener {
             if (exoPlayer.isPlaying) {
@@ -185,15 +180,17 @@ class DetailFragment : Fragment() {
             }
         }
 
-
         replace.setOnClickListener {
             if (!replaceButtonClicked) {
                 replaceButtonClicked = true
+                //listen to events
                 exoPlayer.addListener(object : Player.EventListener {
                     override fun onPlaybackStateChanged(state: Int) {
                         when (state) {
+                            //  check  all state in exoplayer if  exoplayer end  or not phat lai
                             ExoPlayer.STATE_ENDED, ExoPlayer.STATE_IDLE -> {
                                 handler.removeCallbacks(runnable)
+                                // if  replaceButtonClicked = true start play
                                 if (replaceButtonClicked) {
                                     exoPlayer.seekTo(0)
                                     exoPlayer.play()
@@ -209,7 +206,7 @@ class DetailFragment : Fragment() {
             }
         }
 
-
+            // share song current
         btnForward.setOnClickListener {
             val currentSong = songsViewModel.getSelectedSong().value
             val songTitle = currentSong?.title
@@ -224,7 +221,9 @@ class DetailFragment : Fragment() {
             startActivity(shareChooserIntent)
         }
     }
+    // fun update seekbar
     private fun updateSeekBar() {
+        // get seekbar.max = seekbar current
         seekBar.max = exoPlayer.duration.toInt()
         seekBar.progress = exoPlayer.currentPosition.toInt()
         handler.postDelayed(runnable, 1000) // Update every second

@@ -1,16 +1,18 @@
-package com.example.music
+package com.example.music.Fragment
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.music.Model.Song
+import com.example.music.R
+import com.example.music.SongsAdapter
+import com.example.music.SongsAdapter_2
 import com.example.music.ViewModel.SongsViewModel
 import com.example.music.`interface`.OnSongClickListener
 
@@ -26,6 +28,7 @@ class HomeFragment : Fragment(), SongsAdapter.ItemClickListener, SongsAdapter_2.
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val rootView = inflater.inflate(R.layout.fragment_home, container, false)
+
         recyclerView1 = rootView.findViewById(R.id.recyclerView)
         recyclerView1.layoutManager = GridLayoutManager(context, 2)
         adapter1 = SongsAdapter(emptyList(), this)
@@ -42,15 +45,15 @@ class HomeFragment : Fragment(), SongsAdapter.ItemClickListener, SongsAdapter_2.
         recyclerView3.adapter = adapter3
 
         // Initialize the ViewModel
-        songsViewModel = ViewModelProvider(requireActivity()).get(SongsViewModel::class.java)
+        songsViewModel = ViewModelProvider(requireActivity())[SongsViewModel::class.java]
 
-        // Observe the songs LiveData
-        songsViewModel.getSongsLiveData().observe(viewLifecycleOwner, Observer { songs ->
+        // Observethe songs LiveData
+        songsViewModel.getSongsLiveData().observe(viewLifecycleOwner) { songs ->
             // Update the adapters with the list of songs
             adapter1.setSongs(songs)
             adapter2.setSongs(songs)
             adapter3.setSongs(songs)
-        })
+        }
 
         // Fetch songs data
         songsViewModel.fetchSongs()

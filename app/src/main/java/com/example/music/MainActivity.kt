@@ -4,11 +4,16 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.example.music.Fragment.DetailFragment
+import com.example.music.Fragment.HomeFragment
+import com.example.music.Fragment.SearchFragment
+import com.example.music.Fragment.SettingFragment
 import com.example.music.Model.Song
 import com.example.music.ViewModel.SongsViewModel
 import com.example.music.`interface`.OnSongClickListener
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
+@Suppress("DEPRECATION")
 class MainActivity : AppCompatActivity(), OnSongClickListener {
     private lateinit var bottomNavigationView: BottomNavigationView
     private lateinit var homeFragment: HomeFragment
@@ -24,9 +29,8 @@ class MainActivity : AppCompatActivity(), OnSongClickListener {
         homeFragment = HomeFragment()
         settingFragment = SettingFragment()
         searchFragment = SearchFragment()
-        songsViewModel = ViewModelProvider(this).get(SongsViewModel::class.java)
 
-        songsViewModel.setSongClickListener(this)
+        songsViewModel = ViewModelProvider(this)[SongsViewModel::class.java]
 
         bottomNavigationView.setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
@@ -47,6 +51,8 @@ class MainActivity : AppCompatActivity(), OnSongClickListener {
         }
 
         replaceFragment(homeFragment)
+
+        songsViewModel.fetchSongs()
     }
 
     private fun replaceFragment(fragment: Fragment) {
